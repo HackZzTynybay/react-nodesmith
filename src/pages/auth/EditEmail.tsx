@@ -7,6 +7,7 @@ import { FormField } from '@/components/Form/FormField';
 import AuthLayout from '@/components/AuthLayout';
 import { useAuth } from '@/context/AuthContext';
 import { Loader2 } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
 
 const editEmailSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -67,12 +68,25 @@ const EditEmail = () => {
       }
       
       // Update email
-      await updateEmail(formData.email);
-      
-      // Navigate back to verification page
-      navigate('/verify-email');
+      if (formData.email !== user?.email) {
+        await updateEmail(formData.email);
+        
+        // Navigate back to verification page
+        navigate('/verify-email');
+      } else {
+        toast({
+          title: "No changes made",
+          description: "The email address is the same as the current one.",
+        });
+        navigate('/verify-email');
+      }
     } catch (error) {
       console.error('Email update error:', error);
+      toast({
+        title: "Failed to update email",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
+        variant: "destructive",
+      });
       setLoading(false);
     }
   };

@@ -99,6 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Helper function for API calls
   const apiCall = async (endpoint: string, method: string, data?: any) => {
     const API_URL = getApiUrl();
+    const token = localStorage.getItem('easyhr_token');
     
     try {
       console.log(`Making API call to: ${API_URL}${endpoint}`);
@@ -108,7 +109,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         method,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': user ? `Bearer ${localStorage.getItem('easyhr_token')}` : '',
+          'Authorization': token ? `Bearer ${token}` : '',
         },
         body: data ? JSON.stringify(data) : undefined,
       });
@@ -247,7 +248,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const verifyEmail = async (token: string) => {
+  const verifyEmail = async (token: string): Promise<any> => {
     try {
       setIsLoading(true);
       
@@ -279,7 +280,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const resendVerification = async () => {
+  const resendVerification = async (): Promise<any> => {
     try {
       setIsLoading(true);
       
@@ -306,7 +307,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateEmail = async (newEmail: string) => {
+  const updateEmail = async (newEmail: string): Promise<any> => {
     try {
       setIsLoading(true);
       
@@ -327,6 +328,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           title: "Email updated",
           description: "Your email has been updated successfully. Please verify your new email.",
         });
+        
+        return result;
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Update failed';
