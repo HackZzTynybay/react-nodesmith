@@ -29,9 +29,9 @@ interface AuthContextType {
   setCompany: (company: Company | null) => void;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
-  register: (userData: any) => Promise<void>;
+  register: (userData: any) => Promise<any>;
   verifyEmail: (token: string) => Promise<void>;
-  resendVerification: () => Promise<void>;
+  resendVerification: () => Promise<any>;
   updateEmail: (newEmail: string) => Promise<void>;
   createPassword: (password: string) => Promise<void>;
 }
