@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import OnboardingLayout from '@/components/OnboardingLayout';
 import { useOnboarding, Employee, Department } from '@/context/OnboardingContext';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { FormField } from '@/components/Form/FormField';
 import { FormSelect } from '@/components/Form/FormSelect';
 import { FormDatePicker } from '@/components/Form/FormDatePicker';
@@ -39,7 +40,7 @@ const Employees = () => {
   const { employees, departments, addEmployee, nextStep } = useOnboarding();
   
   const [activeTab, setActiveTab] = useState('manual');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [csvFile, setCsvFile] = useState<File | null>(null);
   
   const [formData, setFormData] = useState<EmployeeForm>({
@@ -89,7 +90,7 @@ const Employees = () => {
   const handleCsvSubmit = () => {
     // In a real app, this would process the CSV file
     // For now, we'll just close the dialog
-    setIsDialogOpen(false);
+    setIsSheetOpen(false);
     setCsvFile(null);
   };
 
@@ -145,8 +146,8 @@ const Employees = () => {
         department: formData.department,
       });
       
-      // Close dialog and reset form
-      setIsDialogOpen(false);
+      // Close sheet and reset form
+      setIsSheetOpen(false);
       setFormData({
         firstName: '',
         lastName: '',
@@ -161,8 +162,8 @@ const Employees = () => {
     }
   };
 
-  const openAddEmployeeDialog = () => {
-    setIsDialogOpen(true);
+  const openAddEmployeeSheet = () => {
+    setIsSheetOpen(true);
   };
 
   const handleNext = () => {
@@ -221,7 +222,7 @@ const Employees = () => {
           <Button 
             variant="outline" 
             className="mt-auto"
-            onClick={openAddEmployeeDialog}
+            onClick={openAddEmployeeSheet}
           >
             Add Employee
           </Button>
@@ -237,13 +238,13 @@ const Employees = () => {
         </Button>
       </div>
       
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
+      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <SheetContent side="right" className="sm:max-w-2xl w-full overflow-y-auto">
+          <SheetHeader className="pb-4">
+            <SheetTitle>
               {activeTab === 'manual' ? 'Add employee' : 'Match Columns'}
-            </DialogTitle>
-          </DialogHeader>
+            </SheetTitle>
+          </SheetHeader>
           
           <Tabs defaultValue="manual" value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-2">
@@ -344,8 +345,8 @@ const Employees = () => {
                   </div>
                 </div>
                 
-                <div className="flex justify-end space-x-4 mt-6">
-                  <Button variant="outline" type="button" onClick={() => setIsDialogOpen(false)}>
+                <div className="flex justify-end space-x-4 pt-6 mt-6 border-t">
+                  <Button variant="outline" type="button" onClick={() => setIsSheetOpen(false)}>
                     Cancel
                   </Button>
                   <Button type="submit">
@@ -432,8 +433,8 @@ const Employees = () => {
                   </div>
                 )}
                 
-                <div className="flex justify-end space-x-4">
-                  <Button variant="outline" type="button" onClick={() => setIsDialogOpen(false)}>
+                <div className="flex justify-end space-x-4 pt-6 mt-6 border-t">
+                  <Button variant="outline" type="button" onClick={() => setIsSheetOpen(false)}>
                     Cancel
                   </Button>
                   <Button onClick={handleCsvSubmit} disabled={!csvFile}>
@@ -443,8 +444,8 @@ const Employees = () => {
               </div>
             </TabsContent>
           </Tabs>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </OnboardingLayout>
   );
 };

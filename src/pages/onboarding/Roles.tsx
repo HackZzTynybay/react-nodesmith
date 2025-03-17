@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import OnboardingLayout from '@/components/OnboardingLayout';
 import { useOnboarding, Role, Permission } from '@/context/OnboardingContext';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { FormField } from '@/components/Form/FormField';
 import { FormSelect } from '@/components/Form/FormSelect';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -47,7 +48,7 @@ const Roles = () => {
   const navigate = useNavigate();
   const { roles, addRole, currentStep, nextStep } = useOnboarding();
   
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [formData, setFormData] = useState<RoleForm>({
     name: '',
     description: '',
@@ -147,8 +148,8 @@ const Roles = () => {
         permissions,
       });
       
-      // Close dialog and reset form
-      setIsDialogOpen(false);
+      // Close sheet and reset form
+      setIsSheetOpen(false);
       setFormData({
         name: '',
         description: '',
@@ -162,8 +163,8 @@ const Roles = () => {
     }
   };
 
-  const openAddRoleDialog = () => {
-    setIsDialogOpen(true);
+  const openAddRoleSheet = () => {
+    setIsSheetOpen(true);
   };
 
   const handleNext = () => {
@@ -188,7 +189,7 @@ const Roles = () => {
           ))}
           
           <button
-            onClick={openAddRoleDialog}
+            onClick={openAddRoleSheet}
             className="h-32 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
           >
             <Plus className="h-6 w-6 text-gray-400" />
@@ -206,11 +207,11 @@ const Roles = () => {
         </div>
       </div>
       
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Add Role</DialogTitle>
-          </DialogHeader>
+      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <SheetContent side="right" className="sm:max-w-lg w-full overflow-y-auto">
+          <SheetHeader className="pb-4">
+            <SheetTitle>Add Role</SheetTitle>
+          </SheetHeader>
           
           <form onSubmit={handleSubmit} className="space-y-4 mt-4">
             <FormField
@@ -317,8 +318,8 @@ const Roles = () => {
               )}
             </div>
             
-            <div className="flex justify-end space-x-4 mt-6">
-              <Button variant="outline" type="button" onClick={() => setIsDialogOpen(false)}>
+            <div className="flex justify-end space-x-4 pt-6 mt-6 border-t">
+              <Button variant="outline" type="button" onClick={() => setIsSheetOpen(false)}>
                 Cancel
               </Button>
               <Button type="submit">
@@ -326,8 +327,8 @@ const Roles = () => {
               </Button>
             </div>
           </form>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </OnboardingLayout>
   );
 };
