@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
@@ -9,6 +8,7 @@ import { FormCheckbox } from '@/components/Form/FormCheckbox';
 import AuthLayout from '@/components/AuthLayout';
 import { useAuth } from '@/context/AuthContext';
 import { Loader2 } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
 
 const employeeCountOptions = [
   { value: '1-10', label: '1-10' },
@@ -118,6 +118,16 @@ const Register = () => {
       navigate('/verify-email');
     } catch (error) {
       console.error('Registration error:', error);
+      
+      // Show error toast with more details
+      toast({
+        title: "Registration failed",
+        description: error instanceof Error 
+          ? error.message 
+          : "Cannot connect to the server. Please check your internet connection and try again.",
+        variant: "destructive",
+      });
+      
       setLoading(false);
     }
   };

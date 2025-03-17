@@ -79,10 +79,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [company]);
 
+  // Get the API URL based on environment
+  const getApiUrl = () => {
+    // Check if we're in development
+    if (window.location.hostname === 'localhost') {
+      return 'http://localhost:5000/api';
+    }
+    
+    // For production, use a deployed backend URL if available
+    // You should replace this with your actual deployed backend URL
+    const deployedApiUrl = import.meta.env.VITE_API_URL;
+    
+    if (deployedApiUrl) {
+      return deployedApiUrl;
+    }
+    
+    // Fallback - use the current domain with /api path
+    return `${window.location.origin}/api`;
+  };
+
   // Helper function for API calls
   const apiCall = async (endpoint: string, method: string, data?: any) => {
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    const API_URL = getApiUrl();
+    
     try {
+      console.log(`Making API call to: ${API_URL}${endpoint}`);
+      
       const response = await fetch(`${API_URL}${endpoint}`, {
         method,
         headers: {
@@ -92,14 +114,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         body: data ? JSON.stringify(data) : undefined,
       });
       
-      const result = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(result.message || 'Something went wrong');
+      // Handle non-JSON responses
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.indexOf("application/json") !== -1) {
+        const result = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(result.message || 'Something went wrong');
+        }
+        
+        return result;
+      } else {
+        // Handle non-JSON response
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(text || `HTTP error! status: ${response.status}`);
+        }
+        
+        return { success: true };
       }
-      
-      return result;
     } catch (error) {
+      console.error('API call error:', error);
       if (error instanceof Error) {
         throw new Error(error.message);
       }
@@ -163,6 +198,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (userData: any) => {
     try {
       setIsLoading(true);
+      
+      console.log('Registering with data:', userData);
       
       // In a real app, make an API call
       const result = await apiCall('/auth/register', 'POST', userData);
