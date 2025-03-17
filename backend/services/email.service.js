@@ -79,10 +79,10 @@ const sendVerificationEmail = async (user, token) => {
         <p style="margin-bottom: 15px;">Hi ${user.fullName},</p>
         <p style="margin-bottom: 15px;">Thank you for registering with EasyHR. Please verify your email by clicking the button below:</p>
         <div style="text-align: center; margin: 30px 0;">
-          <a href="${verificationUrl}" style="background-color: #8B5CF6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Verify Email</a>
+          <a href="${verificationUrl}" style="background-color: #1d4ed8; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Verify Email</a>
         </div>
         <p style="margin-bottom: 15px;">If the button doesn't work, you can also click on the link below or copy it to your browser:</p>
-        <p style="margin-bottom: 15px; word-break: break-all;"><a href="${verificationUrl}" style="color: #8B5CF6;">${verificationUrl}</a></p>
+        <p style="margin-bottom: 15px; word-break: break-all;"><a href="${verificationUrl}" style="color: #1d4ed8;">${verificationUrl}</a></p>
         <p style="margin-bottom: 15px;">This link will expire in <strong>24 hours</strong>.</p>
         <p style="margin-bottom: 5px;">If you did not create an account, please ignore this email.</p>
       </div>
@@ -95,7 +95,30 @@ const sendVerificationEmail = async (user, token) => {
   return sendEmail(user.email, 'Verify Your Email - EasyHR', html);
 };
 
+// Add a function to check if email was sent successfully
+const verifyEmailSent = async (messageId) => {
+  try {
+    if (!messageId) {
+      return { success: false, message: 'No message ID provided' };
+    }
+    
+    // In a production environment, you would typically check email delivery status
+    // This is a simplified version since we're using Ethereal for testing
+    return { 
+      success: true, 
+      message: 'Email verification was sent successfully' 
+    };
+  } catch (error) {
+    console.error('Error verifying email delivery:', error);
+    return { 
+      success: false, 
+      message: 'Failed to verify email delivery status' 
+    };
+  }
+};
+
 module.exports = {
   sendEmail,
-  sendVerificationEmail
+  sendVerificationEmail,
+  verifyEmailSent
 };

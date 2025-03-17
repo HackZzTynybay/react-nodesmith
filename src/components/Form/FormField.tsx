@@ -52,7 +52,7 @@ export const FormField: React.FC<FormFieldProps> = ({
           value={value}
           onChange={onChange}
           onBlur={onBlur}
-          className={`w-full ${error ? 'border-red-500' : ''}`}
+          className={`w-full text-gray-500 ${error ? 'border-red-500' : ''}`}
         />
         
         {icon && (
