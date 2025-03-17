@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState } from 'react';
 
 interface OnboardingContextType {
@@ -6,6 +5,7 @@ interface OnboardingContextType {
   roles: Role[];
   employees: Employee[];
   currentStep: number;
+  isOnboardingComplete: boolean; // Added this property
   addDepartment: (department: Department) => void;
   removeDepartment: (id: string) => void;
   updateDepartment: (id: string, department: Partial<Department>) => void;
@@ -99,6 +99,8 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   ]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [currentStep, setCurrentStep] = useState<number>(1);
+  // Add state for isOnboardingComplete
+  const [isOnboardingComplete, setIsOnboardingComplete] = useState<boolean>(false);
 
   const addDepartment = (department: Department) => {
     setDepartments([...departments, department]);
@@ -137,6 +139,10 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   const nextStep = () => {
+    if (currentStep === 3) {
+      // Mark onboarding as complete when finishing the last step
+      setIsOnboardingComplete(true);
+    }
     setCurrentStep(currentStep + 1);
   };
 
@@ -151,6 +157,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         roles,
         employees,
         currentStep,
+        isOnboardingComplete,
         addDepartment,
         removeDepartment,
         updateDepartment,

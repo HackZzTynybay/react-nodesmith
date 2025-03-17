@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -56,7 +55,7 @@ const Roles = () => {
     templateId: '',
   });
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
-  const [errors, setErrors] = useState<Partial<RoleForm>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof RoleForm, string>>>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -111,14 +110,17 @@ const Roles = () => {
       
       if (!result.success) {
         const formattedErrors = result.error.format();
-        const newErrors: Partial<RoleForm> = {};
+        const newErrors: Partial<Record<keyof RoleForm, string>> = {};
         
-        // Extract and format errors
+        // Extract and format errors - fixed type issue
         Object.keys(formattedErrors).forEach(key => {
           if (key !== '_errors') {
-            const errorMsg = formattedErrors[key as keyof typeof formattedErrors]?._errors[0];
-            if (errorMsg) {
-              newErrors[key as keyof RoleForm] = errorMsg;
+            const fieldErrors = formattedErrors[key as keyof typeof formattedErrors];
+            if (fieldErrors && 'string' !== typeof fieldErrors && '_errors' in fieldErrors) {
+              const errorMsg = fieldErrors._errors[0];
+              if (errorMsg) {
+                newErrors[key as keyof RoleForm] = errorMsg;
+              }
             }
           }
         });

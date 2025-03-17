@@ -48,7 +48,7 @@ const Register = () => {
     termsAccepted: false,
   });
 
-  const [errors, setErrors] = useState<Partial<RegisterFormData>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof RegisterFormData, string>>>({});
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,14 +89,17 @@ const Register = () => {
       
       if (!result.success) {
         const formattedErrors = result.error.format();
-        const newErrors: Partial<RegisterFormData> = {};
+        const newErrors: Partial<Record<keyof RegisterFormData, string>> = {};
         
-        // Extract and format errors
+        // Extract and format errors - fixed type issue
         Object.keys(formattedErrors).forEach(key => {
           if (key !== '_errors') {
-            const errorMsg = formattedErrors[key as keyof typeof formattedErrors]?._errors[0];
-            if (errorMsg) {
-              newErrors[key as keyof RegisterFormData] = errorMsg;
+            const fieldErrors = formattedErrors[key as keyof typeof formattedErrors];
+            if (fieldErrors && 'string' !== typeof fieldErrors && '_errors' in fieldErrors) {
+              const errorMsg = fieldErrors._errors[0];
+              if (errorMsg) {
+                newErrors[key as keyof RegisterFormData] = errorMsg;
+              }
             }
           }
         });

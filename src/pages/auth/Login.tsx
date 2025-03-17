@@ -54,12 +54,15 @@ const Login = () => {
         const formattedErrors = result.error.format();
         const newErrors: Partial<LoginFormData> = {};
         
-        // Extract and format errors
+        // Extract and format errors - fixed type issue
         Object.keys(formattedErrors).forEach(key => {
           if (key !== '_errors') {
-            const errorMsg = formattedErrors[key as keyof typeof formattedErrors]?._errors[0];
-            if (errorMsg) {
-              newErrors[key as keyof LoginFormData] = errorMsg;
+            const fieldErrors = formattedErrors[key as keyof typeof formattedErrors];
+            if (fieldErrors && 'string' !== typeof fieldErrors && '_errors' in fieldErrors) {
+              const errorMsg = fieldErrors._errors[0];
+              if (errorMsg) {
+                newErrors[key as keyof LoginFormData] = errorMsg;
+              }
             }
           }
         });
