@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 
@@ -206,11 +205,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       console.log('Registering with data:', userData);
       
-      // In a real app, make an API call
       const result = await apiCall('/auth/register', 'POST', userData);
       
       if (result.success && result.data) {
-        // Store user data
+        // Store user data including isEmailVerified status
         const userData = {
           id: result.data.user.id,
           email: result.data.user.email,
@@ -220,7 +218,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         
         setUser(userData);
-        localStorage.setItem('easyhr_user', JSON.stringify(userData));
         
         // Store company data
         if (result.data.company) {
@@ -231,13 +228,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           };
           
           setCompany(companyData);
-          localStorage.setItem('easyhr_company', JSON.stringify(companyData));
         }
         
-        toast({
-          title: "Registration successful",
-          description: "Please verify your email to continue",
-        });
+        // Return the result for potential additional handling
+        return result;
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Registration failed';

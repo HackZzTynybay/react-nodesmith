@@ -55,11 +55,17 @@ const VerifyEmail = () => {
   const handleResend = async () => {
     setIsResending(true);
     try {
-      await resendVerification();
+      const result = await resendVerification();
       toast({
         title: "Verification email sent",
         description: "Please check your inbox for the verification link",
       });
+      
+      // If in development, show preview URL
+      if (result?.data?.emailPreview) {
+        console.log('Email preview URL:', result.data.emailPreview);
+        window.open(result.data.emailPreview, '_blank');
+      }
     } catch (error) {
       console.error('Error resending verification:', error);
       toast({

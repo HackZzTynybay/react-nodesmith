@@ -115,7 +115,7 @@ const Register = () => {
       console.log('Submitting registration data:', formData);
       
       // Submit form data
-      await register(formData);
+      const registerResult = await register(formData);
       
       toast({
         title: "Registration successful",
