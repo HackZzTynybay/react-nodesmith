@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
@@ -112,18 +111,16 @@ const Register = () => {
         return;
       }
       
-      console.log('Submitting registration data:', formData);
-      
       // Submit form data
-      const registerResult = await register(formData);
+      await register(formData);
       
       toast({
         title: "Registration successful",
         description: "Please check your email to verify your account",
       });
       
-      // Navigate to email verification page on success
-      navigate('/verify-email');
+      // Explicitly navigate to email verification page on success
+      navigate('/verify-email', { replace: true });
     } catch (error) {
       console.error('Registration error:', error);
       
@@ -135,7 +132,7 @@ const Register = () => {
           : "Cannot connect to the server. Please check your internet connection and try again.",
         variant: "destructive",
       });
-      
+    } finally {
       setLoading(false);
     }
   };

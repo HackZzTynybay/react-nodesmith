@@ -1,16 +1,17 @@
+
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import AuthLayout from '@/components/AuthLayout';
 import { useAuth } from '@/context/AuthContext';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, CheckCircle, Mail } from 'lucide-react';
 
 const VerifyEmail = () => {
   const { user, resendVerification, verifyEmail } = useAuth();
-  const [isResending, setIsResending] = React.useState(false);
-  const [isVerifying, setIsVerifying] = React.useState(false);
-  const [verified, setVerified] = React.useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verified, setVerified] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -109,7 +110,11 @@ const VerifyEmail = () => {
         title="Email Verified!"
         subtitle="Your email has been successfully verified. You'll be redirected shortly."
       >
-        <div className="flex justify-center">
+        <div className="flex flex-col items-center gap-4 py-4">
+          <CheckCircle className="h-12 w-12 text-green-500" />
+          <p className="text-center text-muted-foreground">
+            Thank you for verifying your email address. You can now continue to create your password.
+          </p>
           <Button
             onClick={() => navigate('/create-password')}
             className="mt-4"
@@ -127,6 +132,13 @@ const VerifyEmail = () => {
       subtitle={`We sent a verification link to ${user.email}. Check your inbox and spam folder.`}
     >
       <div className="space-y-6">
+        <div className="flex flex-col items-center py-6">
+          <Mail className="h-12 w-12 text-brand mb-4" />
+          <p className="text-center text-muted-foreground">
+            Please check your email and click on the verification link to continue.
+          </p>
+        </div>
+        
         <div className="rounded-lg bg-muted p-4">
           <p className="text-sm text-muted-foreground">
             The verification link will expire in 24 hours. If you don't see the email, 
