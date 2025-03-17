@@ -1,4 +1,3 @@
-
 const User = require('../models/user.model');
 const Company = require('../models/company.model');
 const { catchAsync, AppError } = require('../utils/errorHandler');
@@ -6,7 +5,14 @@ const emailService = require('../services/email.service');
 
 // Register user and company
 const register = catchAsync(async (req, res) => {
+  console.log('Registration request received:', req.body);
+  
   const { email, fullName, companyName, phone, companyId, employeeCount, jobTitle } = req.body;
+  
+  // Validate required fields
+  if (!email || !fullName || !companyName) {
+    throw new AppError('Missing required fields', 400);
+  }
   
   // Check if email is already registered
   const existingUser = await User.findOne({ email });
@@ -18,18 +24,19 @@ const register = catchAsync(async (req, res) => {
   const company = new Company({
     name: companyName,
     email,
-    phone,
-    companyId,
-    employeeCount
+    phone: phone || '',
+    companyId: companyId || '',
+    employeeCount: employeeCount || ''
   });
   
   await company.save();
+  console.log('Company created:', company._id);
   
   // Create user
   const user = new User({
     email,
     fullName,
-    jobTitle,
+    jobTitle: jobTitle || '',
     role: 'admin',
     company: company._id
   });
@@ -37,29 +44,55 @@ const register = catchAsync(async (req, res) => {
   // Generate verification token
   const verificationToken = user.generateVerificationToken();
   await user.save();
+  console.log('User created:', user._id);
   
   // Send verification email
-  const emailResult = await emailService.sendVerificationEmail(user, verificationToken);
-  
-  res.status(201).json({
-    success: true,
-    message: 'Registration successful. Please verify your email.',
-    data: {
-      user: {
-        id: user._id,
-        email: user.email,
-        fullName: user.fullName,
-        role: user.role,
-        isEmailVerified: user.isEmailVerified
-      },
-      company: {
-        id: company._id,
-        name: company.name,
-        email: company.email
-      },
-      emailPreview: process.env.NODE_ENV === 'development' ? emailResult.previewUrl : undefined
-    }
-  });
+  try {
+    const emailResult = await emailService.sendVerificationEmail(user, verificationToken);
+    console.log('Verification email sent:', emailResult.messageId);
+    
+    res.status(201).json({
+      success: true,
+      message: 'Registration successful. Please verify your email.',
+      data: {
+        user: {
+          id: user._id,
+          email: user.email,
+          fullName: user.fullName,
+          role: user.role,
+          isEmailVerified: user.isEmailVerified
+        },
+        company: {
+          id: company._id,
+          name: company.name,
+          email: company.email
+        },
+        emailPreview: process.env.NODE_ENV === 'development' ? emailResult.previewUrl : undefined
+      }
+    });
+  } catch (emailError) {
+    console.error('Failed to send verification email:', emailError);
+    
+    // Return success but with a warning about email
+    res.status(201).json({
+      success: true,
+      message: 'Registration successful but we could not send the verification email. Please try resending it later.',
+      data: {
+        user: {
+          id: user._id,
+          email: user.email,
+          fullName: user.fullName,
+          role: user.role,
+          isEmailVerified: user.isEmailVerified
+        },
+        company: {
+          id: company._id,
+          name: company.name,
+          email: company.email
+        }
+      }
+    });
+  }
 });
 
 // Login

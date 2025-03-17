@@ -87,7 +87,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     
     // For production, use a deployed backend URL if available
-    // You should replace this with your actual deployed backend URL
     const deployedApiUrl = import.meta.env.VITE_API_URL;
     
     if (deployedApiUrl) {
@@ -104,6 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     try {
       console.log(`Making API call to: ${API_URL}${endpoint}`);
+      console.log('Request data:', data);
       
       const response = await fetch(`${API_URL}${endpoint}`, {
         method,
@@ -114,13 +114,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         body: data ? JSON.stringify(data) : undefined,
       });
       
+      console.log(`Response status: ${response.status}`);
+      
       // Handle non-JSON responses
       const contentType = response.headers.get("content-type");
       if (contentType && contentType.indexOf("application/json") !== -1) {
         const result = await response.json();
+        console.log('Response data:', result);
         
         if (!response.ok) {
-          throw new Error(result.message || 'Something went wrong');
+          throw new Error(result.message || `Error ${response.status}: ${response.statusText}`);
         }
         
         return result;
@@ -128,9 +131,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Handle non-JSON response
         if (!response.ok) {
           const text = await response.text();
+          console.error('Non-JSON error response:', text);
           throw new Error(text || `HTTP error! status: ${response.status}`);
         }
         
+        console.log('Received non-JSON success response');
         return { success: true };
       }
     } catch (error) {
@@ -205,19 +210,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const result = await apiCall('/auth/register', 'POST', userData);
       
       if (result.success && result.data) {
-        setUser({
+        // Store user data
+        const userData = {
           id: result.data.user.id,
           email: result.data.user.email,
           fullName: result.data.user.fullName,
           role: result.data.user.role,
           isEmailVerified: result.data.user.isEmailVerified,
-        });
+        };
         
-        setCompany({
-          id: result.data.company.id,
-          name: result.data.company.name,
-          email: result.data.company.email,
-        });
+        setUser(userData);
+        localStorage.setItem('easyhr_user', JSON.stringify(userData));
+        
+        // Store company data
+        if (result.data.company) {
+          const companyData = {
+            id: result.data.company.id,
+            name: result.data.company.name,
+            email: result.data.company.email,
+          };
+          
+          setCompany(companyData);
+          localStorage.setItem('easyhr_company', JSON.stringify(companyData));
+        }
         
         toast({
           title: "Registration successful",
@@ -226,6 +241,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Registration failed';
+      console.error('Registration error in AuthContext:', message);
       toast({
         title: "Registration failed",
         description: message,

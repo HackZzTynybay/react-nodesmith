@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
@@ -111,8 +112,15 @@ const Register = () => {
         return;
       }
       
+      console.log('Submitting registration data:', formData);
+      
       // Submit form data
       await register(formData);
+      
+      toast({
+        title: "Registration successful",
+        description: "Please check your email to verify your account",
+      });
       
       // Navigate to email verification page on success
       navigate('/verify-email');

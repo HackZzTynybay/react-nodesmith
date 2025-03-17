@@ -1,4 +1,3 @@
-
 const Joi = require('joi');
 
 const registerSchema = Joi.object({
@@ -12,9 +11,11 @@ const registerSchema = Joi.object({
   companyName: Joi.string().required().messages({
     'any.required': 'Company name is required'
   }),
-  phone: Joi.string().allow(''),
-  companyId: Joi.string().allow(''),
-  employeeCount: Joi.string().allow('')
+  phone: Joi.string().allow('').optional(),
+  companyId: Joi.string().allow('').optional(),
+  employeeCount: Joi.string().allow('').optional(),
+  jobTitle: Joi.string().allow('').optional(),
+  termsAccepted: Joi.boolean().optional()
 });
 
 const loginSchema = Joi.object({
