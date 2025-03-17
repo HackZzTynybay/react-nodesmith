@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import OnboardingLayout from '@/components/OnboardingLayout';
 import { useOnboarding, Department } from '@/context/OnboardingContext';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { FormField } from '@/components/Form/FormField';
 import { Plus, X } from 'lucide-react';
 import { z } from 'zod';
@@ -20,7 +21,7 @@ const Departments = () => {
   const navigate = useNavigate();
   const { departments, addDepartment, currentStep, nextStep } = useOnboarding();
   
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [formData, setFormData] = useState<DepartmentForm>({
     name: '',
     email: '',
@@ -74,8 +75,8 @@ const Departments = () => {
         lead: formData.lead || undefined,
       });
       
-      // Close dialog and reset form
-      setIsDialogOpen(false);
+      // Close sheet and reset form
+      setIsSheetOpen(false);
       setFormData({
         name: '',
         email: '',
@@ -87,8 +88,8 @@ const Departments = () => {
     }
   };
 
-  const openAddDepartmentDialog = () => {
-    setIsDialogOpen(true);
+  const openAddDepartmentSheet = () => {
+    setIsSheetOpen(true);
   };
 
   const handleNext = () => {
@@ -113,7 +114,7 @@ const Departments = () => {
           ))}
           
           <button
-            onClick={openAddDepartmentDialog}
+            onClick={openAddDepartmentSheet}
             className="h-32 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
           >
             <Plus className="h-6 w-6 text-gray-400" />
@@ -131,11 +132,11 @@ const Departments = () => {
         </div>
       </div>
       
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add Department</DialogTitle>
-          </DialogHeader>
+      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <SheetContent side="right" className="sm:max-w-md w-full overflow-y-auto">
+          <SheetHeader className="pb-4">
+            <SheetTitle>Add Department</SheetTitle>
+          </SheetHeader>
           
           <form onSubmit={handleSubmit} className="space-y-4 mt-4">
             <FormField
@@ -167,8 +168,8 @@ const Departments = () => {
               error={errors.lead}
             />
             
-            <div className="flex justify-end space-x-4 mt-6">
-              <Button variant="outline" type="button" onClick={() => setIsDialogOpen(false)}>
+            <div className="flex justify-end space-x-4 pt-6 mt-6 border-t">
+              <Button variant="outline" type="button" onClick={() => setIsSheetOpen(false)}>
                 Cancel
               </Button>
               <Button type="submit">
@@ -176,8 +177,8 @@ const Departments = () => {
               </Button>
             </div>
           </form>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </OnboardingLayout>
   );
 };
