@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -168,12 +167,14 @@ const Employees = () => {
 
   const handleNext = () => {
     nextStep();
-    navigate('/dashboard');
+    // Redirect to departments page as there is no dashboard
+    navigate('/onboarding/departments');
   };
 
   const handleSkip = () => {
     nextStep();
-    navigate('/dashboard');
+    // Redirect to departments page as there is no dashboard
+    navigate('/onboarding/departments');
   };
 
   const departmentOptions = departments.map(dept => ({

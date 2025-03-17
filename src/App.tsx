@@ -20,7 +20,6 @@ import Roles from "@/pages/onboarding/Roles";
 import Employees from "@/pages/onboarding/Employees";
 
 // Main app pages
-import Dashboard from "@/pages/Dashboard";
 import NotFound from "@/pages/NotFound";
 
 // Route protection components
@@ -54,8 +53,8 @@ const App = () => (
               <Route path="/onboarding/roles" element={<OnboardingRoute><Roles /></OnboardingRoute>} />
               <Route path="/onboarding/employees" element={<OnboardingRoute><Employees /></OnboardingRoute>} />
               
-              {/* Main app routes */}
-              <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+              {/* Redirect dashboard to onboarding */}
+              <Route path="/dashboard" element={<Navigate to="/onboarding/departments" replace />} />
               
               {/* Catch-all route */}
               <Route path="*" element={<NotFound />} />
