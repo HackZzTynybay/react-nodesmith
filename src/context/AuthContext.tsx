@@ -7,6 +7,7 @@ type User = {
   email: string;
   fullName: string;
   role: string;
+  isEmailVerified?: boolean;
   companyName?: string;
 };
 
@@ -17,6 +18,7 @@ type Company = {
   phone?: string;
   companyId?: string;
   employeeCount?: string;
+  isOnboardingComplete?: boolean;
 };
 
 interface AuthContextType {
@@ -29,7 +31,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   register: (userData: any) => Promise<void>;
-  verifyEmail: () => Promise<void>;
+  verifyEmail: (token: string) => Promise<void>;
   resendVerification: () => Promise<void>;
   updateEmail: (newEmail: string) => Promise<void>;
   createPassword: (password: string) => Promise<void>;
@@ -77,26 +79,71 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [company]);
 
+  // Helper function for API calls
+  const apiCall = async (endpoint: string, method: string, data?: any) => {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    try {
+      const response = await fetch(`${API_URL}${endpoint}`, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': user ? `Bearer ${localStorage.getItem('easyhr_token')}` : '',
+        },
+        body: data ? JSON.stringify(data) : undefined,
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.message || 'Something went wrong');
+      }
+      
+      return result;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(error.message);
+      }
+      throw new Error('An unknown error occurred');
+    }
+  };
+
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
-      // In a real app, this would be an API call
-      // Simulating a successful login
-      setUser({
-        id: '123',
-        email,
-        fullName: 'John Doe',
-        role: 'admin',
-      });
       
-      toast({
-        title: "Login successful",
-        description: "Welcome back to EasyHR",
-      });
+      // In a real app, make an API call
+      const result = await apiCall('/auth/login', 'POST', { email, password });
+      
+      if (result.success && result.data) {
+        localStorage.setItem('easyhr_token', result.data.token);
+        
+        setUser({
+          id: result.data.user.id,
+          email: result.data.user.email,
+          fullName: result.data.user.fullName,
+          role: result.data.user.role,
+          isEmailVerified: result.data.user.isEmailVerified,
+        });
+        
+        if (result.data.company) {
+          setCompany({
+            id: result.data.company.id,
+            name: result.data.company.name,
+            email: result.data.company.email,
+            isOnboardingComplete: result.data.company.isOnboardingComplete,
+          });
+        }
+        
+        toast({
+          title: "Login successful",
+          description: "Welcome back to EasyHR",
+        });
+      }
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Login failed';
       toast({
         title: "Login failed",
-        description: "Invalid email or password",
+        description: message,
         variant: "destructive",
       });
       throw error;
@@ -110,41 +157,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCompany(null);
     localStorage.removeItem('easyhr_user');
     localStorage.removeItem('easyhr_company');
+    localStorage.removeItem('easyhr_token');
   };
 
   const register = async (userData: any) => {
     try {
       setIsLoading(true);
-      // In a real app, this would be an API call
-      // Simulating registration
-      const newCompany = {
-        id: '456',
-        name: userData.companyName,
-        email: userData.email,
-        phone: userData.phone,
-        companyId: userData.companyId,
-        employeeCount: userData.employeeCount,
-      };
       
-      const newUser = {
-        id: '123',
-        email: userData.email,
-        fullName: userData.fullName,
-        role: 'admin',
-        companyName: userData.companyName,
-      };
+      // In a real app, make an API call
+      const result = await apiCall('/auth/register', 'POST', userData);
       
-      setCompany(newCompany);
-      setUser(newUser);
-      
-      toast({
-        title: "Registration successful",
-        description: "Please verify your email to continue",
-      });
+      if (result.success && result.data) {
+        setUser({
+          id: result.data.user.id,
+          email: result.data.user.email,
+          fullName: result.data.user.fullName,
+          role: result.data.user.role,
+          isEmailVerified: result.data.user.isEmailVerified,
+        });
+        
+        setCompany({
+          id: result.data.company.id,
+          name: result.data.company.name,
+          email: result.data.company.email,
+        });
+        
+        toast({
+          title: "Registration successful",
+          description: "Please verify your email to continue",
+        });
+      }
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Registration failed';
       toast({
         title: "Registration failed",
-        description: "Please check your information and try again",
+        description: message,
         variant: "destructive",
       });
       throw error;
@@ -153,18 +200,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const verifyEmail = async () => {
+  const verifyEmail = async (token: string) => {
     try {
       setIsLoading(true);
-      // In a real app, this would be an API call
-      toast({
-        title: "Email verified",
-        description: "Thank you for verifying your email",
-      });
+      
+      // Make API call to verify email
+      const result = await apiCall('/auth/verify-email', 'POST', { token });
+      
+      if (result.success) {
+        // Update user's email verification status
+        setUser((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            isEmailVerified: true
+          };
+        });
+        
+        return result;
+      }
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Verification failed';
       toast({
         title: "Verification failed",
-        description: "Unable to verify your email",
+        description: message,
         variant: "destructive",
       });
       throw error;
@@ -176,15 +235,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const resendVerification = async () => {
     try {
       setIsLoading(true);
-      // In a real app, this would be an API call
-      toast({
-        title: "Email sent",
-        description: "Verification email has been resent",
-      });
+      
+      // Make API call to resend verification email
+      const result = await apiCall('/auth/resend-verification', 'POST');
+      
+      if (result.success) {
+        toast({
+          title: "Email sent",
+          description: "Verification email has been resent",
+        });
+        return result;
+      }
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to resend';
       toast({
         title: "Failed to resend",
-        description: "Unable to resend verification email",
+        description: message,
         variant: "destructive",
       });
       throw error;
@@ -196,22 +262,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateEmail = async (newEmail: string) => {
     try {
       setIsLoading(true);
-      // In a real app, this would be an API call
-      if (user) {
-        setUser({
-          ...user,
-          email: newEmail,
+      
+      // Make API call to update email
+      const result = await apiCall('/auth/update-email', 'POST', { email: newEmail });
+      
+      if (result.success && result.data) {
+        setUser((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            email: newEmail,
+            isEmailVerified: false
+          };
         });
         
         toast({
           title: "Email updated",
-          description: "Your email has been updated successfully",
+          description: "Your email has been updated successfully. Please verify your new email.",
         });
       }
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Update failed';
       toast({
         title: "Update failed",
-        description: "Unable to update your email",
+        description: message,
         variant: "destructive",
       });
       throw error;
@@ -223,15 +297,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const createPassword = async (password: string) => {
     try {
       setIsLoading(true);
-      // In a real app, this would be an API call
-      toast({
-        title: "Password created",
-        description: "Your password has been set successfully",
-      });
+      
+      // Make API call to create password
+      const result = await apiCall('/auth/create-password', 'POST', { password });
+      
+      if (result.success) {
+        toast({
+          title: "Password created",
+          description: "Your password has been set successfully",
+        });
+      }
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Password creation failed';
       toast({
         title: "Password creation failed",
-        description: "Unable to set your password",
+        description: message,
         variant: "destructive",
       });
       throw error;

@@ -6,7 +6,7 @@ const emailService = require('../services/email.service');
 
 // Register user and company
 const register = catchAsync(async (req, res) => {
-  const { email, fullName, companyName, phone, companyId, employeeCount } = req.body;
+  const { email, fullName, companyName, phone, companyId, employeeCount, jobTitle } = req.body;
   
   // Check if email is already registered
   const existingUser = await User.findOne({ email });
@@ -29,6 +29,7 @@ const register = catchAsync(async (req, res) => {
   const user = new User({
     email,
     fullName,
+    jobTitle,
     role: 'admin',
     company: company._id
   });
@@ -38,7 +39,7 @@ const register = catchAsync(async (req, res) => {
   await user.save();
   
   // Send verification email
-  await emailService.sendVerificationEmail(user, verificationToken);
+  const emailResult = await emailService.sendVerificationEmail(user, verificationToken);
   
   res.status(201).json({
     success: true,
@@ -55,7 +56,8 @@ const register = catchAsync(async (req, res) => {
         id: company._id,
         name: company.name,
         email: company.email
-      }
+      },
+      emailPreview: process.env.NODE_ENV === 'development' ? emailResult.previewUrl : undefined
     }
   });
 });
@@ -154,11 +156,14 @@ const resendVerification = catchAsync(async (req, res) => {
   await user.save();
   
   // Send verification email
-  await emailService.sendVerificationEmail(user, verificationToken);
+  const emailResult = await emailService.sendVerificationEmail(user, verificationToken);
   
   res.status(200).json({
     success: true,
-    message: 'Verification email has been resent'
+    message: 'Verification email has been resent',
+    data: {
+      emailPreview: process.env.NODE_ENV === 'development' ? emailResult.previewUrl : undefined
+    }
   });
 });
 
@@ -182,14 +187,15 @@ const updateEmail = catchAsync(async (req, res) => {
   await user.save();
   
   // Send verification email
-  await emailService.sendVerificationEmail(user, verificationToken);
+  const emailResult = await emailService.sendVerificationEmail(user, verificationToken);
   
   res.status(200).json({
     success: true,
     message: 'Email updated successfully. Please verify your new email.',
     data: {
       email: user.email,
-      isEmailVerified: user.isEmailVerified
+      isEmailVerified: user.isEmailVerified,
+      emailPreview: process.env.NODE_ENV === 'development' ? emailResult.previewUrl : undefined
     }
   });
 });

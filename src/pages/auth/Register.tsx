@@ -8,6 +8,7 @@ import { FormSelect } from '@/components/Form/FormSelect';
 import { FormCheckbox } from '@/components/Form/FormCheckbox';
 import AuthLayout from '@/components/AuthLayout';
 import { useAuth } from '@/context/AuthContext';
+import { Loader2 } from 'lucide-react';
 
 const employeeCountOptions = [
   { value: '1-10', label: '1-10' },
@@ -91,14 +92,15 @@ const Register = () => {
         const formattedErrors = result.error.format();
         const newErrors: Partial<Record<keyof RegisterFormData, string>> = {};
         
-        // Extract and format errors - fixed type issue
+        // Extract and format errors
         Object.keys(formattedErrors).forEach(key => {
           if (key !== '_errors') {
-            const fieldErrors = formattedErrors[key as keyof typeof formattedErrors];
-            if (fieldErrors && 'string' !== typeof fieldErrors && '_errors' in fieldErrors) {
+            const fieldKey = key as keyof RegisterFormData;
+            const fieldErrors = formattedErrors[fieldKey];
+            if (fieldErrors && typeof fieldErrors === 'object' && '_errors' in fieldErrors) {
               const errorMsg = fieldErrors._errors[0];
               if (errorMsg) {
-                newErrors[key as keyof RegisterFormData] = errorMsg;
+                newErrors[fieldKey] = errorMsg;
               }
             }
           }
@@ -225,7 +227,14 @@ const Register = () => {
           className="w-full" 
           disabled={loading}
         >
-          Create Account
+          {loading ? (
+            <span className="flex items-center justify-center">
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Creating Account...
+            </span>
+          ) : (
+            "Create Account"
+          )}
         </Button>
         
         <div className="text-center text-sm">
