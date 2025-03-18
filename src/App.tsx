@@ -19,6 +19,9 @@ import Departments from "@/pages/onboarding/Departments";
 import Roles from "@/pages/onboarding/Roles";
 import Employees from "@/pages/onboarding/Employees";
 
+// Dashboard page
+import Dashboard from "@/pages/Dashboard";
+
 // Main app pages
 import NotFound from "@/pages/NotFound";
 
@@ -53,8 +56,8 @@ const App = () => (
               <Route path="/onboarding/roles" element={<OnboardingRoute><Roles /></OnboardingRoute>} />
               <Route path="/onboarding/employees" element={<OnboardingRoute><Employees /></OnboardingRoute>} />
               
-              {/* Redirect dashboard to onboarding */}
-              <Route path="/dashboard" element={<Navigate to="/onboarding/departments" replace />} />
+              {/* Dashboard route */}
+              <Route path="/dashboard" element={<Dashboard />} />
               
               {/* Catch-all route */}
               <Route path="*" element={<NotFound />} />
