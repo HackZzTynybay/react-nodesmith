@@ -35,15 +35,15 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="container mx-auto p-4 space-y-6">
-      <div className="flex flex-col md:flex-row items-center md:items-start justify-between mb-6 gap-4">
-        <div className="flex flex-col md:flex-row items-center md:items-center gap-6">
+      <div className="flex flex-col items-center md:items-start justify-between mb-6 gap-4">
+        <div className="flex flex-col items-center md:items-start gap-4">
           <Logo />
-          <div className="mt-2 md:mt-0 text-center md:text-left">
+          <div className="text-center md:text-left">
             <h1 className="text-3xl font-bold">Dashboard</h1>
             <p className="text-muted-foreground">Welcome back! Here's what's happening today.</p>
           </div>
         </div>
-        <div className="flex gap-2 mt-2 md:mt-0">
+        <div className="flex gap-2 mt-2 md:mt-0 self-center md:self-end">
           <Button variant="outline">This Week</Button>
           <Button>Today</Button>
         </div>
