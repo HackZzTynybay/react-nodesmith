@@ -25,11 +25,6 @@ import Dashboard from "@/pages/Dashboard";
 // Main app pages
 import NotFound from "@/pages/NotFound";
 
-// Route protection components
-import AuthRoute from "@/components/routes/AuthRoute";
-import PrivateRoute from "@/components/routes/PrivateRoute";
-import OnboardingRoute from "@/components/routes/OnboardingRoute";
-
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -42,19 +37,19 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               {/* Public routes */}
-              <Route path="/" element={<Navigate to="/register" replace />} />
-              <Route path="/login" element={<AuthRoute><Login /></AuthRoute>} />
-              <Route path="/register" element={<AuthRoute><Register /></AuthRoute>} />
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
               
               {/* Email verification routes */}
-              <Route path="/verify-email" element={<PrivateRoute><VerifyEmail /></PrivateRoute>} />
-              <Route path="/edit-email" element={<PrivateRoute><EditEmail /></PrivateRoute>} />
-              <Route path="/create-password" element={<PrivateRoute><CreatePassword /></PrivateRoute>} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route path="/edit-email" element={<EditEmail />} />
+              <Route path="/create-password" element={<CreatePassword />} />
               
-              {/* Onboarding routes */}
-              <Route path="/onboarding/departments" element={<OnboardingRoute><Departments /></OnboardingRoute>} />
-              <Route path="/onboarding/roles" element={<OnboardingRoute><Roles /></OnboardingRoute>} />
-              <Route path="/onboarding/employees" element={<OnboardingRoute><Employees /></OnboardingRoute>} />
+              {/* Onboarding routes - now directly accessible */}
+              <Route path="/onboarding/departments" element={<Departments />} />
+              <Route path="/onboarding/roles" element={<Roles />} />
+              <Route path="/onboarding/employees" element={<Employees />} />
               
               {/* Dashboard route */}
               <Route path="/dashboard" element={<Dashboard />} />

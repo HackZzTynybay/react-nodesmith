@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState } from 'react';
 
 interface OnboardingContextType {
@@ -5,7 +6,7 @@ interface OnboardingContextType {
   roles: Role[];
   employees: Employee[];
   currentStep: number;
-  isOnboardingComplete: boolean; // Added this property
+  isOnboardingComplete: boolean;
   addDepartment: (department: Department) => void;
   removeDepartment: (id: string) => void;
   updateDepartment: (id: string, department: Partial<Department>) => void;
@@ -58,7 +59,40 @@ const OnboardingContext = createContext<OnboardingContextType>({} as OnboardingC
 export const useOnboarding = () => useContext(OnboardingContext);
 
 export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [departments, setDepartments] = useState<Department[]>([]);
+  // Populate with sample departments
+  const [departments, setDepartments] = useState<Department[]>([
+    {
+      id: '1',
+      name: 'Engineering',
+      email: 'engineering@example.com',
+      lead: 'John Smith',
+    },
+    {
+      id: '2',
+      name: 'Marketing',
+      email: 'marketing@example.com',
+      lead: 'Sarah Johnson',
+    },
+    {
+      id: '3',
+      name: 'Human Resources',
+      email: 'hr@example.com',
+      lead: 'David Lee',
+    },
+    {
+      id: '4',
+      name: 'Finance',
+      email: 'finance@example.com',
+      lead: 'Michelle Wong',
+    },
+    {
+      id: '5',
+      name: 'Sales',
+      email: 'sales@example.com',
+      lead: 'Robert Chen',
+    },
+  ]);
+  
   const [roles, setRoles] = useState<Role[]>([
     {
       id: '1',
@@ -97,9 +131,67 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       permissions: [],
     },
   ]);
-  const [employees, setEmployees] = useState<Employee[]>([]);
+  
+  // Populate with sample employees
+  const [employees, setEmployees] = useState<Employee[]>([
+    {
+      id: '1',
+      firstName: 'John',
+      lastName: 'Doe',
+      gender: 'Male',
+      dateOfBirth: '1990-05-15',
+      email: 'john.doe@example.com',
+      joiningDate: '2022-01-10',
+      jobTitle: 'Software Engineer',
+      department: 'Engineering',
+    },
+    {
+      id: '2',
+      firstName: 'Jane',
+      lastName: 'Smith',
+      gender: 'Female',
+      dateOfBirth: '1992-08-22',
+      email: 'jane.smith@example.com',
+      joiningDate: '2021-11-15',
+      jobTitle: 'Marketing Specialist',
+      department: 'Marketing',
+    },
+    {
+      id: '3',
+      firstName: 'Michael',
+      lastName: 'Johnson',
+      gender: 'Male',
+      dateOfBirth: '1985-03-30',
+      email: 'michael.johnson@example.com',
+      joiningDate: '2020-06-01',
+      jobTitle: 'HR Manager',
+      department: 'Human Resources',
+    },
+    {
+      id: '4',
+      firstName: 'Emily',
+      lastName: 'Williams',
+      gender: 'Female',
+      dateOfBirth: '1988-11-12',
+      email: 'emily.williams@example.com',
+      joiningDate: '2022-02-15',
+      jobTitle: 'Financial Analyst',
+      department: 'Finance',
+    },
+    {
+      id: '5',
+      firstName: 'David',
+      lastName: 'Brown',
+      gender: 'Male',
+      dateOfBirth: '1991-07-08',
+      email: 'david.brown@example.com',
+      joiningDate: '2021-09-20',
+      jobTitle: 'Sales Representative',
+      department: 'Sales',
+    },
+  ]);
+  
   const [currentStep, setCurrentStep] = useState<number>(1);
-  // Add state for isOnboardingComplete
   const [isOnboardingComplete, setIsOnboardingComplete] = useState<boolean>(false);
 
   const addDepartment = (department: Department) => {
@@ -140,7 +232,6 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const nextStep = () => {
     if (currentStep === 3) {
-      // Mark onboarding as complete when finishing the last step
       setIsOnboardingComplete(true);
     }
     setCurrentStep(currentStep + 1);
