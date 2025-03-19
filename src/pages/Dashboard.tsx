@@ -1,5 +1,4 @@
-
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -7,6 +6,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import Logo from "@/components/Logo";
 import { 
   Users, 
   UserPlus, 
@@ -18,16 +19,28 @@ import {
   ExternalLink,
   CalendarDays,
   Calendar,
-  Link
+  Link,
+  X
 } from "lucide-react";
 
 const Dashboard: React.FC = () => {
+  const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
+
+  const handleMetricClick = (metricTitle: string) => {
+    setSelectedMetric(metricTitle);
+    setShowDetailDialog(true);
+  };
+
   return (
     <div className="container mx-auto p-4 space-y-6">
       <div className="flex flex-col md:flex-row items-start justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back! Here's what's happening today.</p>
+        <div className="flex items-center gap-4">
+          <Logo />
+          <div>
+            <h1 className="text-3xl font-bold">Dashboard</h1>
+            <p className="text-muted-foreground">Welcome back! Here's what's happening today.</p>
+          </div>
         </div>
         <div className="flex gap-2 mt-4 md:mt-0">
           <Button variant="outline">This Week</Button>
@@ -43,6 +56,7 @@ const Dashboard: React.FC = () => {
           description="+4 from last month"
           icon={<Users className="h-5 w-5" />}
           colorClass="bg-blue-50 text-blue-700"
+          onClick={() => handleMetricClick("Total Employees")}
         />
         <MetricCard 
           title="New Hires"
@@ -50,6 +64,7 @@ const Dashboard: React.FC = () => {
           description="This month"
           icon={<UserPlus className="h-5 w-5" />}
           colorClass="bg-green-50 text-green-700"
+          onClick={() => handleMetricClick("New Hires")}
         />
         <MetricCard 
           title="Leave Approvals"
@@ -57,6 +72,7 @@ const Dashboard: React.FC = () => {
           description="Pending requests"
           icon={<ClipboardCheck className="h-5 w-5" />}
           colorClass="bg-orange-50 text-orange-700"
+          onClick={() => handleMetricClick("Leave Approvals")}
         />
         <MetricCard 
           title="Reimbursements"
@@ -64,6 +80,7 @@ const Dashboard: React.FC = () => {
           description="Pending approvals"
           icon={<DollarSign className="h-5 w-5" />}
           colorClass="bg-purple-50 text-purple-700"
+          onClick={() => handleMetricClick("Reimbursements")}
         />
       </div>
 
@@ -256,6 +273,143 @@ const Dashboard: React.FC = () => {
           </Card>
         </div>
       </div>
+
+      {/* Detail Dialog */}
+      <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {selectedMetric === "Total Employees" && <Users className="h-5 w-5 text-blue-700" />}
+              {selectedMetric === "New Hires" && <UserPlus className="h-5 w-5 text-green-700" />}
+              {selectedMetric === "Leave Approvals" && <ClipboardCheck className="h-5 w-5 text-orange-700" />}
+              {selectedMetric === "Reimbursements" && <DollarSign className="h-5 w-5 text-purple-700" />}
+              {selectedMetric}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedMetric === "Total Employees" && "Details about all employees in the organization"}
+              {selectedMetric === "New Hires" && "Recent additions to the team"}
+              {selectedMetric === "Leave Approvals" && "Pending leave requests that need your attention"}
+              {selectedMetric === "Reimbursements" && "Expense reimbursements awaiting approval"}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 mt-4">
+            {selectedMetric === "Total Employees" && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-blue-50 p-4 rounded-md">
+                    <p className="text-sm text-blue-700 font-medium">Active</p>
+                    <p className="text-2xl font-bold">118</p>
+                  </div>
+                  <div className="bg-red-50 p-4 rounded-md">
+                    <p className="text-sm text-red-700 font-medium">On Leave</p>
+                    <p className="text-2xl font-bold">6</p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Department Distribution</p>
+                  {departmentData.map((dept) => (
+                    <div key={dept.id} className="space-y-1">
+                      <div className="flex justify-between items-center">
+                        <p className="text-sm">{dept.name}</p>
+                        <span className="text-xs text-muted-foreground">{dept.count}</span>
+                      </div>
+                      <Progress value={dept.percentage} className="h-1" />
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+            
+            {selectedMetric === "New Hires" && (
+              <div className="space-y-3">
+                {[
+                  { name: "Alex Johnson", role: "Frontend Developer", joinDate: "May 2, 2024", avatar: "", initials: "AJ", department: "Engineering" },
+                  { name: "Sarah Miller", role: "UX Designer", joinDate: "May 5, 2024", avatar: "", initials: "SM", department: "Design" },
+                  { name: "Ryan Park", role: "Account Executive", joinDate: "May 10, 2024", avatar: "", initials: "RP", department: "Sales" },
+                  { name: "Linda Chen", role: "HR Specialist", joinDate: "May 15, 2024", avatar: "", initials: "LC", department: "HR" }
+                ].map((hire, index) => (
+                  <div key={index} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md">
+                    <Avatar>
+                      <AvatarImage src={hire.avatar} />
+                      <AvatarFallback>{hire.initials}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <p className="font-medium">{hire.name}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm text-muted-foreground">{hire.role}</p>
+                        <Badge variant="outline" className="text-xs">{hire.department}</Badge>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{hire.joinDate}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {selectedMetric === "Leave Approvals" && (
+              <div className="space-y-3">
+                {[
+                  { name: "Ethan Williams", type: "Vacation", dates: "June 5-12, 2024", avatar: "", initials: "EW", urgent: false },
+                  { name: "Olivia Davis", type: "Sick Leave", dates: "May 25, 2024", avatar: "", initials: "OD", urgent: true },
+                  { name: "Noah Taylor", type: "Personal Leave", dates: "June 1-2, 2024", avatar: "", initials: "NT", urgent: false }
+                ].map((leave, index) => (
+                  <div key={index} className="space-y-2 border-b pb-2 last:border-0">
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarImage src={leave.avatar} />
+                        <AvatarFallback>{leave.initials}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium">{leave.name}</p>
+                          {leave.urgent && <Badge variant="destructive" className="text-xs">Urgent</Badge>}
+                        </div>
+                        <p className="text-sm text-muted-foreground">{leave.type}: {leave.dates}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <Button size="sm" variant="outline">Deny</Button>
+                      <Button size="sm">Approve</Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {selectedMetric === "Reimbursements" && (
+              <div className="space-y-3">
+                {[
+                  { name: "Michael Roberts", amount: "$350.75", category: "Travel", date: "May 18, 2024", avatar: "", initials: "MR" },
+                  { name: "Emma Thompson", amount: "$128.45", category: "Office Supplies", date: "May 20, 2024", avatar: "", initials: "ET" },
+                  { name: "James Wilson", amount: "$212.30", category: "Client Meeting", date: "May 21, 2024", avatar: "", initials: "JW" }
+                ].map((expense, index) => (
+                  <div key={index} className="space-y-2 border-b pb-2 last:border-0">
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarImage src={expense.avatar} />
+                        <AvatarFallback>{expense.initials}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <p className="font-medium">{expense.name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium">{expense.amount}</p>
+                          <Badge variant="outline" className="text-xs">{expense.category}</Badge>
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{expense.date}</p>
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <Button size="sm" variant="outline">Reject</Button>
+                      <Button size="sm">Approve</Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
@@ -266,11 +420,12 @@ interface MetricCardProps {
   description: string;
   icon: React.ReactNode;
   colorClass: string;
+  onClick?: () => void;
 }
 
-const MetricCard: React.FC<MetricCardProps> = ({ title, value, description, icon, colorClass }) => {
+const MetricCard: React.FC<MetricCardProps> = ({ title, value, description, icon, colorClass, onClick }) => {
   return (
-    <Card>
+    <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={onClick}>
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
           <p className="text-sm font-medium text-muted-foreground">{title}</p>
