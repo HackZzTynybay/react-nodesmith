@@ -37,7 +37,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               {/* Public routes */}
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/" element={<Navigate to="/onboarding/departments" replace />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               

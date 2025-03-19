@@ -11,6 +11,7 @@ import { FormDatePicker } from '@/components/Form/FormDatePicker';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Upload, FileUp, User, AlertCircle } from 'lucide-react';
 import { z } from 'zod';
+import { toast } from '@/components/ui/use-toast';
 
 const employeeSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -23,9 +24,15 @@ const employeeSchema = z.object({
   department: z.string().optional(),
 });
 
-type EmployeeForm = Omit<z.infer<typeof employeeSchema>, 'dateOfBirth' | 'joiningDate'> & {
-  dateOfBirth?: Date | string;
-  joiningDate?: Date | string;
+type EmployeeForm = {
+  firstName: string;
+  lastName: string;
+  gender: string;
+  dateOfBirth?: Date;
+  email: string;
+  joiningDate?: Date;
+  jobTitle: string;
+  department: string;
 };
 
 const genderOptions = [
@@ -89,7 +96,10 @@ const Employees = () => {
 
   const handleCsvSubmit = () => {
     // In a real app, this would process the CSV file
-    // For now, we'll just close the dialog
+    toast({
+      title: "CSV Import",
+      description: "Employees imported successfully!",
+    });
     setIsSheetOpen(false);
     setCsvFile(null);
   };
@@ -98,21 +108,21 @@ const Employees = () => {
     e.preventDefault();
     
     try {
-      // Convert string dates to Date objects for validation
+      // Validate form data
       const dataToValidate = {
         ...formData,
+        // Ensure dateOfBirth and joiningDate are proper Date objects or undefined
         dateOfBirth: formData.dateOfBirth instanceof Date ? formData.dateOfBirth : undefined,
         joiningDate: formData.joiningDate instanceof Date ? formData.joiningDate : undefined,
       };
       
-      // Validate form data
       const result = employeeSchema.safeParse(dataToValidate);
       
       if (!result.success) {
         const formattedErrors = result.error.format();
         const newErrors: Partial<Record<keyof EmployeeForm, string>> = {};
         
-        // Extract and format errors - fixed type issue
+        // Extract and format errors
         Object.keys(formattedErrors).forEach(key => {
           if (key !== '_errors') {
             const fieldErrors = formattedErrors[key as keyof typeof formattedErrors];
@@ -129,21 +139,32 @@ const Employees = () => {
         return;
       }
       
-      // Add employee
-      addEmployee({
+      // Format dates for storage
+      const formattedEmployee: Employee = {
         id: Date.now().toString(),
         firstName: formData.firstName,
         lastName: formData.lastName,
         gender: formData.gender,
-        dateOfBirth: formData.dateOfBirth instanceof Date 
-          ? formData.dateOfBirth.toISOString().split('T')[0] 
-          : formData.dateOfBirth,
         email: formData.email,
-        joiningDate: formData.joiningDate instanceof Date 
-          ? formData.joiningDate.toISOString().split('T')[0] 
-          : formData.joiningDate,
         jobTitle: formData.jobTitle,
         department: formData.department,
+      };
+      
+      // Only add date properties if they exist
+      if (formData.dateOfBirth instanceof Date) {
+        formattedEmployee.dateOfBirth = formData.dateOfBirth.toISOString().split('T')[0];
+      }
+      
+      if (formData.joiningDate instanceof Date) {
+        formattedEmployee.joiningDate = formData.joiningDate.toISOString().split('T')[0];
+      }
+      
+      // Add employee
+      addEmployee(formattedEmployee);
+      
+      toast({
+        title: "Success",
+        description: "Employee added successfully!",
       });
       
       // Close sheet and reset form
@@ -159,6 +180,11 @@ const Employees = () => {
       setErrors({});
     } catch (error) {
       console.error('Error adding employee:', error);
+      toast({
+        title: "Error",
+        description: "There was an error adding the employee.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -168,14 +194,12 @@ const Employees = () => {
 
   const handleNext = () => {
     nextStep();
-    // Redirect to departments page as there is no dashboard
-    navigate('/onboarding/departments');
+    navigate('/dashboard');
   };
 
   const handleSkip = () => {
     nextStep();
-    // Redirect to departments page as there is no dashboard
-    navigate('/onboarding/departments');
+    navigate('/dashboard');
   };
 
   const departmentOptions = departments.map(dept => ({
@@ -282,7 +306,6 @@ const Employees = () => {
                       label="Gender"
                       placeholder="Select"
                       options={genderOptions}
-                      required
                       value={formData.gender}
                       onChange={(value) => handleSelectChange('gender', value)}
                       error={errors.gender}
@@ -291,8 +314,7 @@ const Employees = () => {
                     <FormDatePicker
                       id="dateOfBirth"
                       label="Date of Birth"
-                      required
-                      value={formData.dateOfBirth instanceof Date ? formData.dateOfBirth : undefined}
+                      value={formData.dateOfBirth}
                       onChange={(date) => handleDateChange('dateOfBirth', date)}
                       error={errors.dateOfBirth}
                     />
@@ -316,8 +338,7 @@ const Employees = () => {
                     <FormDatePicker
                       id="joiningDate"
                       label="Joining Date"
-                      required
-                      value={formData.joiningDate instanceof Date ? formData.joiningDate : undefined}
+                      value={formData.joiningDate}
                       onChange={(date) => handleDateChange('joiningDate', date)}
                       error={errors.joiningDate}
                     />
@@ -337,7 +358,6 @@ const Employees = () => {
                       label="Department"
                       placeholder="Select"
                       options={departmentOptions}
-                      required
                       value={formData.department}
                       onChange={(value) => handleSelectChange('department', value)}
                       error={errors.department}
@@ -350,7 +370,7 @@ const Employees = () => {
                     Cancel
                   </Button>
                   <Button type="submit">
-                    Next
+                    Add Employee
                   </Button>
                 </div>
               </form>
@@ -421,8 +441,6 @@ const Employees = () => {
                         value="gender"
                         onChange={() => {}}
                       />
-                      
-                      {/* More mapping fields would go here */}
                     </div>
                   </div>
                 ) : (

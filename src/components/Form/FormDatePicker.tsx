@@ -32,6 +32,13 @@ export const FormDatePicker: React.FC<FormDatePickerProps> = ({
   onChange,
   onBlur,
 }) => {
+  // Function to handle date selection and make sure it's propagated correctly
+  const handleDateSelect = (date: Date | undefined) => {
+    if (onChange) {
+      onChange(date);
+    }
+  };
+
   return (
     <div className="mb-4">
       <Label 
@@ -54,17 +61,19 @@ export const FormDatePicker: React.FC<FormDatePickerProps> = ({
               error && "border-red-500"
             )}
             onBlur={onBlur}
+            type="button" // Important to prevent form submission
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
             {value ? format(value, "MM/dd/yyyy") : <span>{placeholder}</span>}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0">
+        <PopoverContent className="w-auto p-0 z-50">
           <Calendar
             mode="single"
             selected={value}
-            onSelect={onChange}
+            onSelect={handleDateSelect}
             initialFocus
+            className="z-50"
           />
         </PopoverContent>
       </Popover>
