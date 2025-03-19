@@ -9,9 +9,10 @@ import { FormField } from '@/components/Form/FormField';
 import { FormSelect } from '@/components/Form/FormSelect';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Plus, Check } from 'lucide-react';
+import { Plus, Check, Shield, User, Users, FileText, Settings, ChevronRight } from 'lucide-react';
 import { z } from 'zod';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const roleSchema = z.object({
   name: z.string().min(1, 'Role name is required'),
@@ -26,6 +27,7 @@ type RoleForm = z.infer<typeof roleSchema>;
 const permissionGroups = [
   {
     group: 'Employee Management',
+    icon: <Users className="h-5 w-5 text-indigo-500" />,
     permissions: [
       { id: 'view_employee', name: 'View employee directory' },
       { id: 'edit_employee', name: 'Edit employee details' },
@@ -35,6 +37,7 @@ const permissionGroups = [
   },
   {
     group: 'Leave & Attendance',
+    icon: <FileText className="h-5 w-5 text-emerald-500" />,
     permissions: [
       { id: 'view_leave', name: 'View leave calendar' },
       { id: 'approve_leave', name: 'Approve/reject leave requests' },
@@ -44,6 +47,7 @@ const permissionGroups = [
   },
   {
     group: 'Payroll & Finance',
+    icon: <FileText className="h-5 w-5 text-amber-500" />,
     permissions: [
       { id: 'view_payroll', name: 'View payroll information' },
       { id: 'process_payroll', name: 'Process payroll' },
@@ -53,6 +57,7 @@ const permissionGroups = [
   },
   {
     group: 'System Administration',
+    icon: <Settings className="h-5 w-5 text-blue-500" />,
     permissions: [
       { id: 'manage_roles', name: 'Manage roles and permissions' },
       { id: 'manage_settings', name: 'Manage system settings' },
@@ -228,41 +233,115 @@ const Roles = () => {
       subtitle="Configure roles and assign permissions to control access levels."
     >
       <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {roles.map((role) => (
-            <RoleCard key={role.id} role={role} />
-          ))}
-          
-          <button
-            onClick={openAddRoleSheet}
-            className="h-32 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
-          >
-            <Plus className="h-6 w-6 text-gray-400" />
-            <span className="mt-2 text-sm font-medium text-gray-500">Add New Role</span>
-          </button>
+        <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-800">User Roles</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Define who can access what in your organization
+              </p>
+            </div>
+            <Button 
+              onClick={openAddRoleSheet}
+              className="bg-brand hover:bg-brand/90 text-white"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add New Role
+            </Button>
+          </div>
+
+          {roles.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed border-gray-200 rounded-lg bg-gray-50">
+              <Shield className="h-12 w-12 text-gray-300 mb-3" />
+              <h3 className="text-lg font-medium text-gray-700 mb-1">No roles defined yet</h3>
+              <p className="text-sm text-gray-500 mb-4 text-center max-w-md">
+                Get started by adding your first role to define what users can access in your organization.
+              </p>
+              <Button 
+                onClick={openAddRoleSheet}
+                className="bg-brand hover:bg-brand/90 text-white"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Your First Role
+              </Button>
+            </div>
+          ) : (
+            <div className="overflow-hidden rounded-lg border border-gray-200">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50">
+                    <TableHead className="font-medium">Role</TableHead>
+                    <TableHead className="font-medium">Description</TableHead>
+                    <TableHead className="font-medium">Permissions</TableHead>
+                    <TableHead className="w-[100px]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {roles.map((role) => {
+                    // Count assigned permissions
+                    const assignedCount = role.permissions.filter(p => p.isGranted).length;
+                    
+                    return (
+                      <TableRow key={role.id} className="hover:bg-gray-50">
+                        <TableCell className="font-medium">
+                          <div className="flex items-center">
+                            <User className="h-5 w-5 text-brand mr-2" />
+                            {role.name}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-gray-600 max-w-[300px] truncate">
+                          {role.description || "—"}
+                        </TableCell>
+                        <TableCell>
+                          {assignedCount > 0 ? (
+                            <div className="flex items-center">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-brand/10 text-brand">
+                                <Check className="h-3 w-3 mr-1" /> 
+                                {assignedCount} permission{assignedCount !== 1 ? 's' : ''}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-gray-500 text-sm">No permissions</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="sm" className="text-gray-500 hover:text-brand">
+                            <ChevronRight className="h-5 w-5" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </div>
         
         <div className="flex justify-end space-x-4 mt-8">
           <Button variant="outline" onClick={handleSkip}>
             Skip
           </Button>
-          <Button onClick={handleNext}>
+          <Button 
+            className="bg-brand hover:bg-brand/90 text-white" 
+            onClick={handleNext}
+          >
             Save & Next
           </Button>
         </div>
       </div>
       
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent side="right" className="sm:max-w-lg w-full overflow-y-auto">
-          <SheetHeader className="pb-4">
-            <SheetTitle>Add Role</SheetTitle>
+        <SheetContent side="right" className="sm:max-w-md w-full overflow-y-auto">
+          <SheetHeader className="pb-4 border-b">
+            <SheetTitle className="text-xl">Define Role & Permissions</SheetTitle>
           </SheetHeader>
           
-          <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+          <form onSubmit={handleSubmit} className="space-y-5 mt-6">
             <FormField
               id="name"
               label="Role Name"
-              placeholder="Enter role name"
+              placeholder="E.g., HR Manager, Team Lead"
               required
               value={formData.name}
               onChange={handleChange}
@@ -272,27 +351,27 @@ const Roles = () => {
             <FormField
               id="description"
               label="Description"
-              placeholder="Enter description"
+              placeholder="Brief description of this role's responsibilities"
               value={formData.description}
               onChange={handleChange}
               error={errors.description}
             />
             
             <div className="space-y-4 mt-6">
-              <h3 className="text-sm font-medium">Permissions</h3>
+              <h3 className="text-sm font-medium text-gray-700">Permissions</h3>
               
-              <div className="flex space-x-3">
+              <div className="bg-gray-50 p-4 rounded-lg space-y-3">
                 <div className="flex items-center">
                   <input
                     type="radio"
                     id="useTemplate"
                     name="permissionType"
-                    className="h-4 w-4 text-brand"
+                    className="h-4 w-4 text-brand focus:ring-brand border-gray-300"
                     checked={formData.useTemplate}
                     onChange={() => handleTemplateToggle(true)}
                   />
-                  <Label htmlFor="useTemplate" className="ml-2 text-sm">
-                    Existing permission template
+                  <Label htmlFor="useTemplate" className="ml-2 text-sm font-medium text-gray-700">
+                    Use permission template
                   </Label>
                 </div>
                 
@@ -301,12 +380,12 @@ const Roles = () => {
                     type="radio"
                     id="customPerms"
                     name="permissionType"
-                    className="h-4 w-4 text-brand"
+                    className="h-4 w-4 text-brand focus:ring-brand border-gray-300"
                     checked={!formData.useTemplate}
                     onChange={() => handleTemplateToggle(false)}
                   />
-                  <Label htmlFor="customPerms" className="ml-2 text-sm">
-                    Choose your own set of permissions
+                  <Label htmlFor="customPerms" className="ml-2 text-sm font-medium text-gray-700">
+                    Custom permissions
                   </Label>
                 </div>
               </div>
@@ -314,13 +393,13 @@ const Roles = () => {
               {formData.useTemplate ? (
                 <FormSelect
                   id="templateId"
-                  label="Existing permission template"
-                  placeholder="Select a template"
+                  label="Select template"
+                  placeholder="Choose a template"
                   options={[
-                    { value: 'super_admin', label: 'Super Admin' },
+                    { value: 'super_admin', label: 'Super Administrator' },
                     { value: 'hr_manager', label: 'HR Manager' },
                     { value: 'dept_manager', label: 'Department Manager' },
-                    { value: 'employee', label: 'Employee' },
+                    { value: 'employee', label: 'Standard Employee' },
                     { value: 'executive', label: 'Executive' },
                     { value: 'finance_manager', label: 'Finance Manager' },
                   ]}
@@ -330,25 +409,31 @@ const Roles = () => {
                 />
               ) : (
                 <div className="space-y-4">
-                  <p className="text-sm text-gray-500">Select the permissions for this role:</p>
+                  <p className="text-sm text-gray-500">
+                    Select the specific permissions for this role:
+                  </p>
                   
-                  <div className="border rounded-md">
+                  <div className="border rounded-md overflow-hidden">
                     <Accordion type="multiple" className="w-full">
                       {permissionGroups.map((group) => (
-                        <AccordionItem key={group.group} value={group.group}>
-                          <AccordionTrigger className="px-4 text-sm font-medium">
-                            {group.group}
+                        <AccordionItem key={group.group} value={group.group} className="border-b last:border-0">
+                          <AccordionTrigger className="px-4 py-3 text-sm font-medium hover:bg-gray-50">
+                            <div className="flex items-center">
+                              {group.icon}
+                              <span className="ml-2">{group.group}</span>
+                            </div>
                           </AccordionTrigger>
-                          <AccordionContent className="px-4 pb-2">
+                          <AccordionContent className="px-4 pb-3 pt-1">
                             <div className="space-y-2">
                               {group.permissions.map((permission) => (
-                                <div key={permission.id} className="flex items-center">
+                                <div key={permission.id} className="flex items-center py-1">
                                   <Checkbox
                                     id={permission.id}
                                     checked={selectedPermissions.includes(permission.id)}
                                     onCheckedChange={() => handlePermissionToggle(permission.id)}
+                                    className="text-brand focus:ring-brand"
                                   />
-                                  <Label htmlFor={permission.id} className="ml-2 text-sm">
+                                  <Label htmlFor={permission.id} className="ml-3 text-sm text-gray-700">
                                     {permission.name}
                                   </Label>
                                 </div>
@@ -367,77 +452,14 @@ const Roles = () => {
               <Button variant="outline" type="button" onClick={() => setIsSheetOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit">
-                Save
+              <Button type="submit" className="bg-brand hover:bg-brand/90 text-white">
+                Save Role
               </Button>
             </div>
           </form>
         </SheetContent>
       </Sheet>
     </OnboardingLayout>
-  );
-};
-
-const RoleCard: React.FC<{ role: Role }> = ({ role }) => {
-  // Count assigned permissions
-  const assignedCount = role.permissions.filter(p => p.isGranted).length;
-  const totalCount = role.permissions.length || 0;
-  
-  // Group permissions by category for display
-  const permissionsByGroup: Record<string, Permission[]> = {};
-  role.permissions.forEach(permission => {
-    if (permission.isGranted) {
-      if (!permissionsByGroup[permission.group]) {
-        permissionsByGroup[permission.group] = [];
-      }
-      permissionsByGroup[permission.group].push(permission);
-    }
-  });
-  
-  return (
-    <div className="border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow transition-shadow">
-      <h3 className="font-medium text-gray-900">{role.name}</h3>
-      {role.description && (
-        <p className="text-sm text-gray-500 mt-1">{role.description}</p>
-      )}
-      
-      <div className="mt-3">
-        {assignedCount > 0 ? (
-          <p className="text-xs font-medium text-brand flex items-center">
-            <Check className="h-3 w-3 mr-1" /> 
-            {assignedCount} permission{assignedCount !== 1 ? 's' : ''} assigned
-          </p>
-        ) : (
-          <p className="text-xs text-gray-500">No permissions assigned</p>
-        )}
-      </div>
-      
-      {assignedCount > 0 && Object.keys(permissionsByGroup).length > 0 && (
-        <div className="mt-3 pt-3 border-t border-gray-100">
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="permissions">
-              <AccordionTrigger className="text-xs font-medium py-1">
-                View permissions
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="space-y-2 text-xs">
-                  {Object.entries(permissionsByGroup).map(([group, permissions]) => (
-                    <div key={group}>
-                      <p className="font-medium text-gray-700">{group}</p>
-                      <ul className="mt-1 ml-4 list-disc text-gray-600">
-                        {permissions.map(permission => (
-                          <li key={permission.id}>{permission.name}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </div>
-      )}
-    </div>
   );
 };
 
