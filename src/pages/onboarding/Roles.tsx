@@ -9,7 +9,7 @@ import { FormField } from '@/components/Form/FormField';
 import { FormSelect } from '@/components/Form/FormSelect';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Plus, ChevronDown, ChevronUp, Check } from 'lucide-react';
+import { Plus, Check } from 'lucide-react';
 import { z } from 'zod';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
@@ -38,11 +38,53 @@ const permissionGroups = [
     permissions: [
       { id: 'view_leave', name: 'View leave calendar' },
       { id: 'approve_leave', name: 'Approve/reject leave requests' },
-      { id: 'create_leave_policy', name: 'Create leave policies (casual/sick/maternity)' },
+      { id: 'create_leave_policy', name: 'Create leave policies' },
       { id: 'view_attendance', name: 'View attendance logs' },
     ],
   },
+  {
+    group: 'Payroll & Finance',
+    permissions: [
+      { id: 'view_payroll', name: 'View payroll information' },
+      { id: 'process_payroll', name: 'Process payroll' },
+      { id: 'approve_expenses', name: 'Approve expense reports' },
+      { id: 'view_finance', name: 'View financial reports' },
+    ],
+  },
+  {
+    group: 'System Administration',
+    permissions: [
+      { id: 'manage_roles', name: 'Manage roles and permissions' },
+      { id: 'manage_settings', name: 'Manage system settings' },
+      { id: 'manage_integrations', name: 'Manage integrations' },
+      { id: 'view_audit_logs', name: 'View audit logs' },
+    ],
+  },
 ];
+
+// Role templates with predefined permissions
+const roleTemplates = {
+  super_admin: permissionGroups.flatMap(group => group.permissions.map(p => p.id)),
+  hr_manager: [
+    'view_employee', 'edit_employee', 'add_employee', 
+    'view_leave', 'approve_leave', 'create_leave_policy', 'view_attendance'
+  ],
+  dept_manager: [
+    'view_employee', 'edit_employee',
+    'view_leave', 'approve_leave', 'view_attendance'
+  ],
+  employee: [
+    'view_employee', 'view_leave', 'view_attendance'
+  ],
+  executive: [
+    'view_employee', 'view_leave', 'view_attendance', 
+    'view_payroll', 'view_finance', 'approve_expenses'
+  ],
+  finance_manager: [
+    'view_employee', 'view_payroll', 'process_payroll', 
+    'approve_expenses', 'view_finance'
+  ],
+};
 
 const Roles = () => {
   const navigate = useNavigate();
@@ -74,6 +116,11 @@ const Roles = () => {
       useTemplate,
       templateId: useTemplate ? prev.templateId : '',
     }));
+    
+    // Clear selected permissions when switching to template mode
+    if (useTemplate && !formData.templateId) {
+      setSelectedPermissions([]);
+    }
   };
 
   const handleTemplateSelect = (templateId: string) => {
@@ -82,13 +129,11 @@ const Roles = () => {
       templateId,
     }));
     
-    // Simulate loading template permissions
-    // In a real app, this would come from the backend
-    if (templateId) {
-      const allPermissions = permissionGroups.flatMap(group => 
-        group.permissions.map(perm => perm.id)
-      );
-      setSelectedPermissions(allPermissions);
+    // Apply template permissions
+    if (templateId && roleTemplates[templateId as keyof typeof roleTemplates]) {
+      setSelectedPermissions(roleTemplates[templateId as keyof typeof roleTemplates]);
+    } else {
+      setSelectedPermissions([]);
     }
   };
 
@@ -113,7 +158,7 @@ const Roles = () => {
         const formattedErrors = result.error.format();
         const newErrors: Partial<Record<keyof RoleForm, string>> = {};
         
-        // Extract and format errors - fixed type issue
+        // Extract and format errors
         Object.keys(formattedErrors).forEach(key => {
           if (key !== '_errors') {
             const fieldErrors = formattedErrors[key as keyof typeof formattedErrors];
@@ -144,7 +189,7 @@ const Roles = () => {
       addRole({
         id: Date.now().toString(),
         name: formData.name,
-        description: formData.description,
+        description: formData.description || '',
         permissions,
       });
       
@@ -183,7 +228,7 @@ const Roles = () => {
       subtitle="Configure roles and assign permissions to control access levels."
     >
       <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {roles.map((role) => (
             <RoleCard key={role.id} role={role} />
           ))}
@@ -193,7 +238,7 @@ const Roles = () => {
             className="h-32 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors"
           >
             <Plus className="h-6 w-6 text-gray-400" />
-            <span className="mt-2 text-sm font-medium text-gray-500">Role</span>
+            <span className="mt-2 text-sm font-medium text-gray-500">Add New Role</span>
           </button>
         </div>
         
@@ -270,7 +315,7 @@ const Roles = () => {
                 <FormSelect
                   id="templateId"
                   label="Existing permission template"
-                  placeholder="Select"
+                  placeholder="Select a template"
                   options={[
                     { value: 'super_admin', label: 'Super Admin' },
                     { value: 'hr_manager', label: 'HR Manager' },
@@ -336,18 +381,62 @@ const Roles = () => {
 const RoleCard: React.FC<{ role: Role }> = ({ role }) => {
   // Count assigned permissions
   const assignedCount = role.permissions.filter(p => p.isGranted).length;
+  const totalCount = role.permissions.length || 0;
+  
+  // Group permissions by category for display
+  const permissionsByGroup: Record<string, Permission[]> = {};
+  role.permissions.forEach(permission => {
+    if (permission.isGranted) {
+      if (!permissionsByGroup[permission.group]) {
+        permissionsByGroup[permission.group] = [];
+      }
+      permissionsByGroup[permission.group].push(permission);
+    }
+  });
   
   return (
-    <div className="border border-gray-200 rounded-lg p-4 shadow-sm">
+    <div className="border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow transition-shadow">
       <h3 className="font-medium text-gray-900">{role.name}</h3>
       {role.description && (
         <p className="text-sm text-gray-500 mt-1">{role.description}</p>
       )}
-      <p className="text-xs text-brand mt-2">
-        {assignedCount > 0 
-          ? `${assignedCount} permissions assigned` 
-          : 'All permissions assigned'}
-      </p>
+      
+      <div className="mt-3">
+        {assignedCount > 0 ? (
+          <p className="text-xs font-medium text-brand flex items-center">
+            <Check className="h-3 w-3 mr-1" /> 
+            {assignedCount} permission{assignedCount !== 1 ? 's' : ''} assigned
+          </p>
+        ) : (
+          <p className="text-xs text-gray-500">No permissions assigned</p>
+        )}
+      </div>
+      
+      {assignedCount > 0 && Object.keys(permissionsByGroup).length > 0 && (
+        <div className="mt-3 pt-3 border-t border-gray-100">
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="permissions">
+              <AccordionTrigger className="text-xs font-medium py-1">
+                View permissions
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-2 text-xs">
+                  {Object.entries(permissionsByGroup).map(([group, permissions]) => (
+                    <div key={group}>
+                      <p className="font-medium text-gray-700">{group}</p>
+                      <ul className="mt-1 ml-4 list-disc text-gray-600">
+                        {permissions.map(permission => (
+                          <li key={permission.id}>{permission.name}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+      )}
     </div>
   );
 };
