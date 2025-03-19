@@ -36,9 +36,9 @@ const Dashboard: React.FC = () => {
   return (
     <div className="container mx-auto p-4 space-y-6">
       <div className="flex flex-col items-center md:items-start justify-between mb-6 gap-4">
-        <div className="flex flex-col items-center md:items-start gap-4">
+        <div className="flex flex-col items-center md:items-start gap-6">
           <Logo />
-          <div className="text-center md:text-left">
+          <div className="text-center md:text-left mt-4">
             <h1 className="text-3xl font-bold">Dashboard</h1>
             <p className="text-muted-foreground">Welcome back! Here's what's happening today.</p>
           </div>
